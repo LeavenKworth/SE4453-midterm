@@ -20,3 +20,15 @@ DB_PASSWORD = secret_client.get_secret("PASSWORD").value
 DB_HOST = secret_client.get_secret("HOST").value
 DB_PORT = secret_client.get_secret("PORT").value
 DB_NAME = secret_client.get_secret("DBNAME").value
+
+
+# --- Database connection function ---
+def get_db_connection():
+    conn = psycopg2.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD
+    )
+    return conn
