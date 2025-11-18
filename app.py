@@ -32,3 +32,23 @@ def get_db_connection():
         password=DB_PASSWORD
     )
     return conn
+
+# --- Flask endpoint ---
+@app.route("/hello", methods=["GET"])
+def hello():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT greeting FROM greetings LIMIT 1;")  # Example table and column
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if result:
+        return jsonify({"message": result[0]})
+    else:
+        return jsonify({"message": "No greeting found"})
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
+
