@@ -1,0 +1,44 @@
+name: Build Docker Image and Push to ACR
+
+on:
+  push:
+    branches:
+      - main  # DİKKAT: Senin ana dalın 'master' ise burayı 'master' yap
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    # 1. Kodu Çek
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v2
+
+    # 2. Azure'a Giriş Yap (Secrets kullanarak)
+    - name: 'Sign in to Azure'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # 3. Docker (ACR) Girişi Yap
+    - name: 'Login to ACR'
+      uses: azure/docker-login@v1
+      with:
+        login-server: se4453finalcrsweden.azurecr.io
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    # 4. İmajı Oluştur ve Gönder (Build & Push)
+    - run: |
+        docker build . -t se4453finalcrsweden.azurecr.io/final-image:${{ github.sha }}
+        docker push se4453finalcrsweden.azurecr.io/final-image:${{ github.sha }}
+
+    # 5. App Service'e Deploy Et
+    - name: 'Deploy from ACR to App Service'
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'se4453-final-web-sweden'
+        images: 'se4453finalcrsweden.azurecr.io/final-image:${{ github.sha }}'
+
+    # 6. Çıkış Yap
+    - run: |
+        az logout
